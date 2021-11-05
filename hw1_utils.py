@@ -1,4 +1,4 @@
-# from wordcloud import WordCloud
+from wordcloud import WordCloud
 
 
 '''
@@ -6,13 +6,13 @@ This function generates a word cloud from a string, and saves it as a .png file.
 
 input: text - a string to generate a word cloud from, filename - a string with the file's path. The string must end with ".png".
 '''
-# def generate_wordcloud_to_file(text, filename):
-#     if not filename.endswith('.png'):
-#         raise Exception('Invalid filename parameter: '
-#                         'This function should only be used to create .png files. '
-#                         'Please use a filename that ends with ".png"')
-#     wc = WordCloud().generate(text)
-#     wc.to_file(filename)
+def generate_wordcloud_to_file(text, filename):
+    if not filename.endswith('.png'):
+        raise Exception('Invalid filename parameter: '
+                        'This function should only be used to create .png files. '
+                        'Please use a filename that ends with ".png"')
+    wc = WordCloud().generate(text)
+    wc.to_file(filename)
 
 
 '''

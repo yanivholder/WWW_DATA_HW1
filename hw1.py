@@ -68,9 +68,11 @@ def create_file_list():
 
 
 def create_html_links(filenames):
-    res = ""
+    res = "<ul>\n"
     for file in filenames:
-        res += f"<p>Go to <a href=\"{file}\">{file}</a></p>\n"
+        file = file.replace("\\", "/")
+        res += f"<li> <button onclick=\"window.location.href=\'{file}\';\">{file}</button> </li>\n"
+    res += "\n</ul>"
     return res
 
 
@@ -115,7 +117,7 @@ def main():
                     html_page = f"<!DOCTYPE HTML>\n<html>\n<body>\n<h1>{os.path.basename(request[1])}</h1>\n"
                     # TODO: replace the next line with cloud word
                     html_page += f"<p>{file_data}</p>\n"
-                    html_page += "<p>Return to <a href=\"http://127.0.0.1:8888/\">home page</a></p>"
+                    html_page += "<button onclick=\"window.location.href=\'http://127.0.0.1:8888/\';\">Home page</button>"
                     response = "HTTP/1.1 200 OK\n\n" + html_page
                     conn.sendall(response.encode())
 

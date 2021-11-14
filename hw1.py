@@ -1,4 +1,4 @@
-import socket
+    import socket
 import os
 import hw1_utils
 
@@ -17,14 +17,15 @@ def http_basic_validation(request, conn):
     if request[0] != "GET":
         conn.sendall("HTTP/1.1 501 NOT_GET".encode())
         return False
-    elif request[1] != "/" and not request[1].endswith(".pdf"):
-        conn.sendall("HTTP/1.1 404 NOT_PDF".encode())
-        return False
     elif not os.path.isdir("pdfs"):
         conn.sendall("HTTP/1.1 404 PDFS_NOT_EXISTS".encode())
         return False
     elif request[1] != "/" and not os.path.isfile('pdfs' + request[1]):
         conn.sendall("HTTP/1.1 404 FILE_NOT_EXISTS".encode())
+        return False
+    # TODO: fix to check the right thing
+    elif request[1] != "/" and not request[1].endswith(".pdf"):
+        conn.sendall("HTTP/1.1 404 NOT_PDF".encode())
         return False
     return True
 
@@ -68,6 +69,7 @@ def create_file_list():
 
 
 def create_html_links(filenames):
+    # TODO: here and everywhere else remove the .pdf from the http request
     res = "<ul>\n"
     for file in filenames:
         file = file.replace("\\", "/")
@@ -77,6 +79,7 @@ def create_html_links(filenames):
 
 
 def main():
+    # TODO: replace with socket per request
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((SERVER_HOST, SERVER_PORT))
         s.listen(5)
@@ -112,11 +115,12 @@ def main():
                     response = "HTTP/1.1 200 OK\n\n" + root_page + file_list_html + meme_add_on + "</body>\n</html>"
                     conn.sendall(response.encode())
                 else:
-                    file_name = os.path.basename(request[1])
+                    file_name = os.path.basename(request[1]) + ".pdf"
                     photo_name = file_name.replace('pdf', 'png')
+                    photo_path = "images/" + photo_name
                     file_data = pdf_to_text('pdfs' + request[1]).lower()
                     file_data = remove_stopwords(file_data)
-                    hw1_utils.generate_wordcloud_to_file(file_data, photo_name)
+                    hw1_utils.generate_wordcloud_to_file(text=file_data, filename=photo_path)
 
                     html_page = f"<!DOCTYPE HTML>\n<html>\n<body>\n<h1>{file_name}</h1>\n"
                     # import pathlib
@@ -124,7 +128,7 @@ def main():
                     # print(f"<img src=\'{my_path}\\{photo_name}\'>")
                     # html_page += f"<img src=\'{my_path}/{photo_name}\'>"
                     # TODO: replace the next line with photo name (actual word cloud)
-                    html_page += f"<img src=\'{web_img_addr}\'>"
+                    html_page += f"<img src=\'{photo_name}\'>"
                     html_page += f"<button onclick=\"window.location.href=\'{HOME_PAGE}\';\">Home page</button>"
                     response = "HTTP/1.1 200 OK\n\n" + html_page
                     conn.sendall(response.encode())

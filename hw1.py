@@ -15,12 +15,15 @@ def http_basic_validation(request, conn):
     and if the url is the home page or a pdf file"""
 
     if request[0] != "GET":
+        print("Response: 501")
         conn.sendall("HTTP/1.1 501 NOT_GET".encode())
         return False
     elif not os.path.isdir("pdfs"):
         conn.sendall("HTTP/1.1 404 PDFS_NOT_EXISTS".encode())
+        print("Response: 404")
         return False
     elif request[1] != "/" and not request[1].endswith(".png") and not os.path.isfile('pdfs' + request[1] + ".pdf"):
+        print("Response: 404")
         conn.sendall("HTTP/1.1 404 FILE_NOT_EXISTS".encode())
         return False
     return True
@@ -103,6 +106,7 @@ def main():
                 if not http_basic_validation(request, conn):
                     continue
                 response = "HTTP/1.1 200 OK\n\n"
+                print("Response: 200")
 
                 if request[1] == "/":
                     # If the url is the home page:
@@ -120,17 +124,20 @@ def main():
                     file_name = os.path.basename(request[1]) + ".pdf"
                     photo_name = file_name.replace('pdf', 'png')
                     photo_path = "images/" + photo_name
-                    file_data = pdf_to_text('pdfs' + request[1] + ".pdf").lower()
-                    file_data = remove_stopwords(file_data)
-
                     html_page = f"<!DOCTYPE HTML>\n<html>\n<body>\n<h1>{file_name}</h1>\n"
-
-                    # Check that the wordcloud will not be empty
-                    if not file_data:
-                        html_page += f"<p>The wordcloud is empty</p>\n"
+                    try:
+                        file_data = pdf_to_text('pdfs' + request[1] + ".pdf").lower()
+                    except:
+                        html_page += f"<p>The file is with .pdf ending but not a valid pdf</p>\n"
                     else:
-                        hw1_utils.generate_wordcloud_to_file(text=file_data, filename=photo_path)
-                        html_page += f"<img src=\'{photo_name}\'>"
+                        file_data = remove_stopwords(file_data)
+
+                        # Check that the wordcloud will not be empty
+                        if not file_data:
+                            html_page += f"<p>The wordcloud is empty</p>\n"
+                        else:
+                            hw1_utils.generate_wordcloud_to_file(text=file_data, filename=photo_path)
+                            html_page += f"<img src=\'{photo_name}\'>"
 
                     html_page += f"<button onclick=\"window.location.href=\'{HOME_PAGE}\';\">Home page</button>"
                     html_page += "</body>\n</html>"
